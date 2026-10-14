@@ -1,0 +1,303 @@
+// ShowForge database schema.
+// Base: PRD section 6.2, extended with what the PRD itself requires elsewhere:
+// favorites (3.1), credits (7.3), idempotent payment webhooks (R4) and render snapshots (4.4).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+// LIFETIME is a way of paying for a plan, not a tier of its own.
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  MIDTRANS
+  STRIPE
+}
+
+enum TemplateType {
+  SHOWREEL
+  LOOP
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  READY
+  FAILED
+}
+
+enum RenderStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+enum RenderResolution {
+  HD_720
+  FHD_1080
+  UHD_2160
+}
+
+enum RenderFormat {
+  MP4
+  WEBM
+  GIF
+}
+
+// Where a render's cost was paid from: the plan's monthly quota first, then purchased credits.
+enum RenderCharge {
+  QUOTA
+  CREDITS
+}
+
+enum CreditReason {
+  PURCHASE
+  RENDER
+  REFUND
+  ADJUSTMENT
+}
+
+enum PaymentEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+// ---------- Models ----------
+
+model User {
+  // Clerk user id (e.g. "user_2abc..."), so no lookup table is needed between auth and data.
+  id            String   @id
+  email         String   @unique
+  name          String?
+  avatarUrl     String?
+  plan          Plan     @default(FREE)
+  // Purchased credits that never expire. Every change is recorded in CreditLedger in the same transaction.
+  creditBalance Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projects      Project[]
+  media         Media[]
+  renders       Render[]
+  subscriptions Subscription[]
+  creditEntries CreditLedger[]
+  templateStars TemplateStar[]
+
+  @@map("users")
+}
+
+model Template {
+  id           String       @id @default(cuid())
+  // Matches the Remotion composition id and the catalog in remotion/catalog.ts.
+  slug         String       @unique
+  name         String
+  description  String
+  type         TemplateType
+  previewUrl   String?
+  thumbnailUrl String?
+  // JSON schema of the template-specific options, generated from the template's zod schema.
+  paramSchema  Json
+  isPremium    Boolean      @default(false)
+  isActive     Boolean      @default(true)
+  sortOrder    Int          @default(0)
+  // Drives the "Baru" label in the template library.
+  publishedAt  DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  projects Project[]
+  stars    TemplateStar[]
+
+  @@index([type, isActive, sortOrder])
+  @@map("templates")
+}
+
+model TemplateStar {
+  userId     String
+  templateId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@id([userId, templateId])
+  @@map("template_stars")
+}
+
+model Project {
+  id           String    @id @default(cuid())
+  userId       String
+  name         String
+  templateSlug String
+  // ShowreelConfig (remotion/shared/config.ts), validated at the API boundary before it is stored.
+  config       Json
+  thumbnailKey String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  // Soft delete so a project's renders and download links survive the "Hapus" action until they expire.
+  deletedAt    DateTime?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template @relation(fields: [templateSlug], references: [slug], onUpdate: Cascade)
+  media    Media[]
+  renders  Render[]
+
+  @@index([userId, deletedAt, updatedAt(sort: Desc)])
+  @@map("projects")
+}
+
+model Media {
+  id         String      @id @default(cuid())
+  userId     String
+  projectId  String
+  // Object key in the private R2 bucket. Clients only ever get short-lived signed URLs.
+  storageKey String      @unique
+  type       MediaType
+  mimeType   String
+  sizeBytes  Int
+  width      Int?
+  height     Int?
+  durationMs Int?
+  status     MediaStatus @default(PENDING_UPLOAD)
+  createdAt  DateTime    @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId, status])
+  @@map("media")
+}
+
+model Render {
+  id             String           @id @default(cuid())
+  userId         String
+  projectId      String
+  status         RenderStatus     @default(PENDING)
+  resolution     RenderResolution
+  format         RenderFormat
+  watermark      Boolean
+  // The exact config that was rendered. The project can change afterwards; the render must not.
+  configSnapshot Json
+  // 0..1, written by the worker.
+  progress       Float            @default(0)
+  jobId          String?
+  outputKey      String?
+  outputBytes    Int?
+  durationMs     Int?
+  errorCode      String?
+  errorMessage   String?
+  charge         RenderCharge?
+  creditsCharged Int              @default(0)
+  // Client-supplied Idempotency-Key, so a retried POST /api/renders never renders or charges twice.
+  idempotencyKey String?
+  createdAt      DateTime         @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  // Download link lifetime (PRD 3.4: 7 days).
+  expiresAt      DateTime?
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creditEntries CreditLedger[]
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("renders")
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String
+  plan            Plan
+  interval        BillingInterval
+  status          SubscriptionStatus @default(ACTIVE)
+  paymentProvider PaymentProvider
+  // Order id (Midtrans) or subscription id (Stripe).
+  externalId      String
+  startedAt       DateTime
+  // Null for LIFETIME.
+  expiresAt       DateTime?
+  canceledAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentProvider, externalId])
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+model CreditLedger {
+  id             String       @id @default(cuid())
+  userId         String
+  // Positive for purchases and refunds, negative for renders.
+  delta          Int
+  reason         CreditReason
+  renderId       String?
+  paymentEventId String?
+  note           String?
+  createdAt      DateTime     @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  render       Render?       @relation(fields: [renderId], references: [id], onDelete: SetNull)
+  paymentEvent PaymentEvent? @relation(fields: [paymentEventId], references: [id], onDelete: SetNull)
+
+  // One ledger row per reason per render or payment, so retries cannot double-charge or double-credit.
+  @@unique([renderId, reason])
+  @@unique([paymentEventId, reason])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("credit_ledger")
+}
+
+// Every payment webhook is stored before it is acted on. The unique key is the idempotency guard (PRD risk R4).
+model PaymentEvent {
+  id          String             @id @default(cuid())
+  provider    PaymentProvider
+  // Provider's event or transaction id. Insert first; a unique violation means "already seen".
+  externalId  String
+  type        String
+  status      PaymentEventStatus @default(RECEIVED)
+  payload     Json
+  error       String?
+  receivedAt  DateTime           @default(now())
+  processedAt DateTime?
+
+  creditEntries CreditLedger[]
+
+  @@unique([provider, externalId])
+  @@map("payment_events")
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2000" viewBox="0 0 1600 2000">
+<rect width="1600" height="2000" fill="#9fb39a"/>
+<path d="M800 300 L1400 1500 L200 1500 Z" fill="#3b2a20"/>
+<rect x="640" y="1100" width="320" height="400" fill="#efe6d5"/>
+<text x="800" y="1888" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="72" font-weight="600" fill="#3b2a20">Contoh media 06</text>
+</svg>

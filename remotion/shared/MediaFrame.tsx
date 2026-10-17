@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Img, OffthreadVideo, Sequence } from "remotion";
+import { Freeze, Img, OffthreadVideo, Sequence, useCurrentFrame } from "remotion";
 import type { MediaItem, UniversalSettings } from "./config";
 import { containBox, type Box } from "./dimensions";
 import { resolveSrc } from "./media";
@@ -18,9 +18,12 @@ type Props = {
   dim?: number;
   /** Applied to the image or video inside the frame, e.g. a zoom that the frame's mask should not follow. */
   innerStyle?: CSSProperties;
+  /** Holds a video on its current frame (e.g. Rolodex plays only the centered item). */
+  paused?: boolean;
 };
 
-export function MediaFrame({ item, frame, settings, unit, startFrame, style, dim = 0, innerStyle }: Props) {
+export function MediaFrame({ item, frame, settings, unit, startFrame, style, dim = 0, innerStyle, paused = false }: Props) {
+  const now = useCurrentFrame();
   const box =
     settings.mediaFit === "contain" ? containBox(frame, item.width, item.height) : frame;
   const src = resolveSrc(item.src);
@@ -44,6 +47,11 @@ export function MediaFrame({ item, frame, settings, unit, startFrame, style, dim
     >
       {item.type === "image" ? (
         <Img src={src} style={fill} />
+      ) : now < startFrame || paused ? (
+        // Before its turn (a card waiting in a stack) or paused: show a still frame, not a blank box.
+        <Freeze frame={Math.max(now - startFrame, 0)}>
+          <OffthreadVideo src={src} muted style={fill} />
+        </Freeze>
       ) : (
         <Sequence from={startFrame} layout="none">
           <OffthreadVideo src={src} muted style={fill} />

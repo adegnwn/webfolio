@@ -2,7 +2,7 @@
 
 Turns screenshots and clips into a portfolio showreel. Spec: the ShowForge PRD (Portfolio Showreel SaaS) in the WEB FOLIO SAAS project.
 
-Status: **Fase 0 done, Fase 1 in progress.** The editor runs ten templates in light and dark mode: showreels Comet, Rise, Slide, VFlip, Reveal, Snap, Stack, Unveil and loops Marquee, Grid Fade. Media can be added (picker or drag and drop), removed and reordered; until R2 upload lands they stay in the browser tab as local files. Accounts, upload, export and payments are next.
+Status: **Fase 0 done, Fase 1 in progress.** The editor runs all fifteen templates from PRD 3.1 in light and dark mode: showreels Comet, Rise, Rolodex, Slide, VFlip, Reveal, Snap, Folio, Stack, Unveil and loops Orbit, Viscose, Hover, Marquee, Grid Fade. Media can be added (picker or drag and drop), removed and reordered; until R2 upload lands they stay in the browser tab as local files. Accounts, upload, export and payments are next.
 
 ## Stack
 
@@ -95,4 +95,4 @@ DESIGN.md                  visual direction and tokens
 
 The settings panel builds the template's controls from its `ParamSpecs` (a slider, or a toggle group for `choiceParam`), so no UI code is needed. Files that the catalog imports (`timing.ts`, `layout.ts`) must not import from `"remotion"`, because server routes load the catalog; use `"remotion/no-react"` there.
 
-Loop templates (`type: "LOOP"`) have no ending, set `usesHoldDuration: false` when there is no resting moment, and must return exactly one motion cycle from `durationInFrames` so the last frame flows into frame 0. `tests/loops.test.ts` shows how to prove that for a template.
+Loop templates (`type: "LOOP"`) have no ending, set `usesHoldDuration: false` when there is no resting moment, and must return exactly one motion cycle from `durationInFrames` so the last frame flows into frame 0. `tests/loops.test.ts` shows how to prove that for a template. `tests/catalog-imports.test.ts` fails if anything the catalog imports reaches the React part of Remotion.

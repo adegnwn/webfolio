@@ -10,7 +10,7 @@ describe("GET /api/templates", () => {
     const res = await get("/api/templates");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise", "slide", "vflip", "reveal", "snap", "stack", "unveil", "marquee", "gridfade"]);
+    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise", "rolodex", "slide", "vflip", "reveal", "snap", "folio", "stack", "unveil", "orbit", "viscose", "hover", "marquee", "gridfade"]);
     expect(body.nextCursor).toBeNull();
   });
 
@@ -25,12 +25,12 @@ describe("GET /api/templates", () => {
       seen.push(...page.data.map((t) => t.slug));
       cursor = page.nextCursor;
     } while (cursor);
-    expect(seen).toEqual(["comet", "rise", "slide", "vflip", "reveal", "snap", "stack", "unveil", "marquee", "gridfade"]);
+    expect(seen).toEqual(["comet", "rise", "rolodex", "slide", "vflip", "reveal", "snap", "folio", "stack", "unveil", "orbit", "viscose", "hover", "marquee", "gridfade"]);
   });
 
   it("filters by type and search text", async () => {
     const loops = await (await get("/api/templates?type=LOOP")).json();
-    expect(loops.data.map((t: { slug: string }) => t.slug)).toEqual(["marquee", "gridfade"]);
+    expect(loops.data.map((t: { slug: string }) => t.slug)).toEqual(["orbit", "viscose", "hover", "marquee", "gridfade"]);
     const rise = await (await get("/api/templates?q=naik")).json();
     expect(rise.data.map((t: { slug: string }) => t.slug)).toEqual(["rise"]);
   });

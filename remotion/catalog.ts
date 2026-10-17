@@ -1,20 +1,25 @@
 import { getDimensions } from "./shared/dimensions";
 import type { TemplateMeta } from "./shared/template";
 import { COMET_PARAMS, cometTiming } from "./templates/comet/timing";
+import { FOLIO_PARAMS, folioTiming } from "./templates/folio/timing";
 import { GRIDFADE_PARAMS, gridTiming } from "./templates/gridfade/layout";
+import { HOVER_PARAMS, hoverCycleFrames } from "./templates/hover/layout";
 import { MARQUEE_PARAMS, marqueeCycleFrames } from "./templates/marquee/layout";
+import { ORBIT_PARAMS, orbitCycleFrames } from "./templates/orbit/layout";
 import { REVEAL_PARAMS, revealTiming } from "./templates/reveal/timing";
 import { RISE_PARAMS, riseTiming } from "./templates/rise/timing";
+import { ROLODEX_PARAMS, rolodexTiming } from "./templates/rolodex/timing";
 import { SLIDE_PARAMS, slideTiming } from "./templates/slide/timing";
 import { SNAP_PARAMS, snapTiming } from "./templates/snap/timing";
 import { STACK_PARAMS, stackTiming } from "./templates/stack/timing";
 import { UNVEIL_PARAMS, unveilTiming } from "./templates/unveil/timing";
 import { VFLIP_PARAMS, vflipTiming } from "./templates/vflip/timing";
+import { VISCOSE_PARAMS, viscoseCycleFrames } from "./templates/viscose/layout";
 
 /**
- * Source of truth for which templates exist. The Template table is seeded from this list
- * (prisma/seed.ts), each slug is the Remotion composition id, and registry.ts attaches the
- * React components. No React imports here.
+ * Source of truth for which templates exist, in the order of PRD 3.1. The Template table is
+ * seeded from this list (prisma/seed.ts), each slug is the Remotion composition id, and
+ * registry.ts attaches the React components. No React imports here, directly or indirectly.
  */
 export const TEMPLATE_CATALOG: TemplateMeta[] = [
   {
@@ -38,6 +43,17 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
     params: RISE_PARAMS,
     usesHoldDuration: true,
     durationInFrames: (config, fps) => riseTiming(config, fps).total,
+  },
+  {
+    slug: "rolodex",
+    name: "Rolodex",
+    description: "Media berputar di drum vertikal dengan tilt 3D; video diputar saat berada di tengah.",
+    type: "SHOWREEL",
+    isPremium: false,
+    publishedAt: "2026-10-17",
+    params: ROLODEX_PARAMS,
+    usesHoldDuration: true,
+    durationInFrames: (config, fps) => rolodexTiming(config, fps).total,
   },
   {
     slug: "slide",
@@ -84,6 +100,17 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
     durationInFrames: (config, fps) => snapTiming(config, fps).total,
   },
   {
+    slug: "folio",
+    name: "Folio",
+    description: "Folder terbuka, isinya tumpah ke grid, lalu menyebar jadi barisan yang bergulir.",
+    type: "SHOWREEL",
+    isPremium: false,
+    publishedAt: "2026-10-17",
+    params: FOLIO_PARAMS,
+    usesHoldDuration: false,
+    durationInFrames: (config, fps) => folioTiming(config, fps).total,
+  },
+  {
     slug: "stack",
     name: "Stack",
     description: "Tumpukan kartu: kartu depan bergeser keluar untuk membuka kartu berikutnya.",
@@ -104,6 +131,39 @@ export const TEMPLATE_CATALOG: TemplateMeta[] = [
     params: UNVEIL_PARAMS,
     usesHoldDuration: true,
     durationInFrames: (config, fps) => unveilTiming(config, fps).total,
+  },
+  {
+    slug: "orbit",
+    name: "Orbit",
+    description: "Media mengelilingi cincin 3D yang berputar pelan di ruang.",
+    type: "LOOP",
+    isPremium: false,
+    publishedAt: "2026-10-17",
+    params: ORBIT_PARAMS,
+    usesHoldDuration: false,
+    durationInFrames: (config, fps) => orbitCycleFrames(config, fps),
+  },
+  {
+    slug: "viscose",
+    name: "Viscose",
+    description: "Media bergerak di atas cincin cair yang meleleh kartu demi kartu.",
+    type: "LOOP",
+    isPremium: false,
+    publishedAt: "2026-10-17",
+    params: VISCOSE_PARAMS,
+    usesHoldDuration: false,
+    durationInFrames: (config, fps) => viscoseCycleFrames(config, fps),
+  },
+  {
+    slug: "hover",
+    name: "Hover",
+    description: "Kursor bergerak di atas grid, media di bawahnya terangkat.",
+    type: "LOOP",
+    isPremium: false,
+    publishedAt: "2026-10-17",
+    params: HOVER_PARAMS,
+    usesHoldDuration: false,
+    durationInFrames: (config, fps) => hoverCycleFrames(config, fps),
   },
   {
     slug: "marquee",

@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { TEMPLATE_CATALOG } from "@/remotion/catalog";
 import { defaultConfig } from "@/remotion/composition";
 import { getDimensions } from "@/remotion/shared/dimensions";
+import { cursorAt, hoverCells, hoverGrid, liftFor } from "@/remotion/templates/hover/layout";
+import { orbitCardsAt } from "@/remotion/templates/orbit/layout";
+import { viscoseAt } from "@/remotion/templates/viscose/layout";
 import { gridTiles, gridTiming, tileProgress } from "@/remotion/templates/gridfade/layout";
 import { revealParams } from "@/remotion/templates/reveal/timing";
 import { marqueeCycleFrames, marqueeGeometry, marqueeOffset, marqueeTilesAt } from "@/remotion/templates/marquee/layout";
@@ -68,5 +71,38 @@ describe("choice params", () => {
     expect(revealParams.safeParse({ shape: 0 }).success).toBe(true);
     expect(revealParams.safeParse({ shape: 0.5 }).success).toBe(false);
     expect(revealParams.safeParse({ shape: 2 }).success).toBe(false);
+  });
+});
+
+const RATIOS = ["16:9", "9:16", "4:5", "1:1"] as const;
+const round = (o: object) => JSON.stringify(o, (_k, v) => (typeof v === "number" ? Number(v.toFixed(4)) : v));
+
+describe("Orbit, Viscose and Hover loop without a seam", () => {
+  it.each(RATIOS)("Orbit at %s: a full turn returns every card to its start", (ratio) => {
+    const config = defaultConfig("orbit");
+    const out = getDimensions(ratio, "1080p");
+    expect(round(orbitCardsAt(config, out, 1))).toBe(round(orbitCardsAt(config, out, 0)));
+  });
+
+  it("Orbit keeps near cards in front of far ones", () => {
+    const cards = orbitCardsAt(defaultConfig("orbit"), getDimensions("16:9", "1080p"), 0);
+    const near = cards.reduce((a, b) => (a.depth > b.depth ? a : b));
+    const far = cards.reduce((a, b) => (a.depth < b.depth ? a : b));
+    expect(near.scale).toBeGreaterThan(far.scale);
+  });
+
+  it.each(RATIOS)("Viscose at %s: phase 1 equals phase 0", (ratio) => {
+    const config = defaultConfig("viscose");
+    const out = getDimensions(ratio, "1080p");
+    expect(round(viscoseAt(config, out, 1))).toBe(round(viscoseAt(config, out, 0)));
+  });
+
+  it.each(RATIOS)("Hover at %s: cursor and lifts at phase 1 equal phase 0", (ratio) => {
+    const config = defaultConfig("hover");
+    const out = getDimensions(ratio, "1080p");
+    const grid = hoverGrid(config, out);
+    const lifts = (phase: number) => hoverCells(config, out).map((c) => liftFor(c, cursorAt(grid, phase), grid));
+    expect(round(cursorAt(grid, 1))).toBe(round(cursorAt(grid, 0)));
+    expect(round(lifts(1))).toBe(round(lifts(0)));
   });
 });

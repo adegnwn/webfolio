@@ -3,11 +3,19 @@ import { TEMPLATE_CATALOG } from "./catalog";
 import type { ShowreelProps } from "./shared/config";
 import type { TemplateDefinition } from "./shared/template";
 import { Comet } from "./templates/comet/Comet";
+import { Marquee } from "./templates/marquee/Marquee";
 import { Rise } from "./templates/rise/Rise";
+import { Slide } from "./templates/slide/Slide";
+import { Snap } from "./templates/snap/Snap";
+import { Stack } from "./templates/stack/Stack";
 
 const COMPONENTS: Record<string, ComponentType<ShowreelProps>> = {
   comet: Comet,
   rise: Rise,
+  slide: Slide,
+  snap: Snap,
+  stack: Stack,
+  marquee: Marquee,
 };
 
 /** Catalog entries with their compositions attached. Used by the Remotion Root and the editor Player. */

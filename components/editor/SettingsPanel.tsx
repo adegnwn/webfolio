@@ -156,15 +156,17 @@ export function SettingsPanel() {
         />
       </Section>
 
-      <Section title="Animasi">
-        <SliderField
-          label="Durasi tahan per media"
-          value={settings.holdDuration}
-          spec={{ min: 0, max: 3, step: 0.1, default: DEFAULTS.holdDuration }}
-          suffix=" dtk"
-          onChange={(v) => updateSettings({ holdDuration: v })}
-        />
-      </Section>
+      {template?.usesHoldDuration ? (
+        <Section title="Animasi">
+          <SliderField
+            label="Durasi tahan per media"
+            value={settings.holdDuration}
+            spec={{ min: 0, max: 3, step: 0.1, default: DEFAULTS.holdDuration }}
+            suffix=" dtk"
+            onChange={(v) => updateSettings({ holdDuration: v })}
+          />
+        </Section>
+      ) : null}
 
       {template && Object.keys(template.params).length > 0 ? (
         <Section title={`Opsi ${template.name}`}>
@@ -180,33 +182,36 @@ export function SettingsPanel() {
         </Section>
       ) : null}
 
-      <Section title="Akhir video">
-        <div className="flex flex-col gap-2">
-          <label htmlFor={brandId} className="text-sm">
-            Nama brand
-          </label>
-          <Input
-            id={brandId}
-            value={settings.brand}
-            maxLength={40}
-            placeholder="Nama studio atau namamu"
-            onChange={(e) => updateSettings({ brand: e.target.value })}
-          />
-        </div>
-        <ToggleGroup
-          type="single"
-          value={settings.ending}
-          onValueChange={(v) => v && updateSettings({ ending: v as Ending })}
-          aria-label="Animasi penutup"
-          className="grid-cols-2"
-        >
-          {(Object.keys(ENDING_LABELS) as Ending[]).map((e) => (
-            <ToggleGroupItem key={e} value={e}>
-              {ENDING_LABELS[e]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </Section>
+      {/* Loops have no ending; the brand end card only exists on showreels. */}
+      {template?.type === "SHOWREEL" ? (
+        <Section title="Akhir video">
+          <div className="flex flex-col gap-2">
+            <label htmlFor={brandId} className="text-sm">
+              Nama brand
+            </label>
+            <Input
+              id={brandId}
+              value={settings.brand}
+              maxLength={40}
+              placeholder="Nama studio atau namamu"
+              onChange={(e) => updateSettings({ brand: e.target.value })}
+            />
+          </div>
+          <ToggleGroup
+            type="single"
+            value={settings.ending}
+            onValueChange={(v) => v && updateSettings({ ending: v as Ending })}
+            aria-label="Animasi penutup"
+            className="grid-cols-2"
+          >
+            {(Object.keys(ENDING_LABELS) as Ending[]).map((e) => (
+              <ToggleGroupItem key={e} value={e}>
+                {ENDING_LABELS[e]}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </Section>
+      ) : null}
 
       <Section title="Warna">
         <ColorField
@@ -214,7 +219,7 @@ export function SettingsPanel() {
           value={backgroundColor}
           onChange={(color) => updateSettings({ background: { type: "color", color } })}
         />
-        <ColorField label="Teks dan penutup" value={settings.textColor} onChange={(textColor) => updateSettings({ textColor })} />
+        <ColorField label={template?.type === "SHOWREEL" ? "Teks dan penutup" : "Teks"} value={settings.textColor} onChange={(textColor) => updateSettings({ textColor })} />
       </Section>
 
       <div className="px-4 py-4">

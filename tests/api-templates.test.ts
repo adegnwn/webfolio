@@ -10,23 +10,27 @@ describe("GET /api/templates", () => {
     const res = await get("/api/templates");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise"]);
+    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise", "slide", "snap", "stack", "marquee"]);
     expect(body.nextCursor).toBeNull();
   });
 
-  it("pages with an opaque cursor", async () => {
-    const first = await (await get("/api/templates?limit=1")).json();
-    expect(first.data).toHaveLength(1);
-    expect(first.nextCursor).toEqual(expect.any(String));
-
-    const second = await (await get(`/api/templates?limit=1&cursor=${first.nextCursor}`)).json();
-    expect(second.data[0].slug).toBe("rise");
-    expect(second.nextCursor).toBeNull();
+  it("pages with an opaque cursor until nextCursor is null", async () => {
+    const seen: string[] = [];
+    let cursor: string | null = null;
+    do {
+      const page: { data: { slug: string }[]; nextCursor: string | null } = await (
+        await get(`/api/templates?limit=4${cursor ? `&cursor=${cursor}` : ""}`)
+      ).json();
+      expect(page.data.length).toBeLessThanOrEqual(4);
+      seen.push(...page.data.map((t) => t.slug));
+      cursor = page.nextCursor;
+    } while (cursor);
+    expect(seen).toEqual(["comet", "rise", "slide", "snap", "stack", "marquee"]);
   });
 
   it("filters by type and search text", async () => {
     const loops = await (await get("/api/templates?type=LOOP")).json();
-    expect(loops.data).toEqual([]);
+    expect(loops.data.map((t: { slug: string }) => t.slug)).toEqual(["marquee"]);
     const rise = await (await get("/api/templates?q=naik")).json();
     expect(rise.data.map((t: { slug: string }) => t.slug)).toEqual(["rise"]);
   });

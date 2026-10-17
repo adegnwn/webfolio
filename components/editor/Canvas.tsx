@@ -40,7 +40,9 @@ export function Canvas() {
   const template = getTemplate(config.templateSlug);
   const playerRef = useRef<PlayerRef>(null);
   const [frame, setFrame] = useState(0);
-  const [playing, setPlaying] = useState(true);
+  // Keyed by template: switching template remounts the Player, which autoplays again.
+  const [playState, setPlayState] = useState({ slug: config.templateSlug, playing: true });
+  const playing = playState.slug === config.templateSlug ? playState.playing : true;
 
   const inputProps = useMemo<ShowreelProps>(
     () => ({ config, resolution: "1080p", watermark: false }),
@@ -53,8 +55,9 @@ export function Canvas() {
     const player = playerRef.current;
     if (!player) return;
     const onFrame = (e: { detail: { frame: number } }) => setFrame(e.detail.frame);
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
+    const slug = template?.slug ?? "";
+    const onPlay = () => setPlayState({ slug, playing: true });
+    const onPause = () => setPlayState({ slug, playing: false });
     player.addEventListener("frameupdate", onFrame);
     player.addEventListener("play", onPlay);
     player.addEventListener("pause", onPause);

@@ -2,7 +2,7 @@
 
 Turns screenshots and clips into a portfolio showreel. Spec: the ShowForge PRD (Portfolio Showreel SaaS) in the WEB FOLIO SAAS project.
 
-Status: **Fase 0** (PRD 8.1). The editor preview runs with two templates (Comet, Rise) on bundled example media. Upload, accounts, export and payments start in Fase 1.
+Status: **Fase 0 done, Fase 1 in progress.** The editor preview runs with six templates on bundled example media: showreels Comet, Rise, Slide, Snap, Stack and the loop Marquee. Upload, accounts, export and payments are next.
 
 ## Stack
 
@@ -74,7 +74,7 @@ remotion/
   registry.ts              catalog + React components
   composition.ts           default config, size and duration per config
   shared/                  ShowreelConfig schema, dimensions, timeline, Stage, MediaFrame, Ending
-  templates/comet, rise/   one folder per template: component + params/timing
+  templates/<slug>/        one folder per template: component + params/timing (or layout for loops)
 prisma/
   schema.prisma, seed.ts
 docs/api.md                API contract and conventions
@@ -89,3 +89,5 @@ DESIGN.md                  visual direction and tokens
 4. `npm run render:samples -- <slug>` to check it, then `npm run db:seed`.
 
 The settings panel builds the template's sliders from its `ParamSpecs`, so no UI code is needed.
+
+Loop templates (`type: "LOOP"`) have no ending, set `usesHoldDuration: false` when there is no resting moment, and must return exactly one motion cycle from `durationInFrames` so the last frame flows into frame 0. `tests/loops.test.ts` shows how to prove that for a template.

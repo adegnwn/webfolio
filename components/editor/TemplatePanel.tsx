@@ -94,7 +94,7 @@ export function TemplatePanel() {
             {q
               ? `Tidak ada template ${tab === "LOOP" ? "loop" : "showreel"} yang cocok dengan "${query.trim()}".`
               : tab === "LOOP"
-                ? "Belum ada template loop. Orbit, Marquee dan template loop lain sedang dibuat."
+                ? "Belum ada template loop."
                 : "Belum ada template showreel."}
           </li>
         ) : null}

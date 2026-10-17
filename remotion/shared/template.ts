@@ -18,6 +18,12 @@ export type TemplateMeta = {
   /** ISO date; the library shows "Baru" for 30 days after this. */
   publishedAt: string;
   params: ParamSpecs;
+  /** False when the motion has no "rest" moment (e.g. Marquee), so the editor hides that setting. */
+  usesHoldDuration: boolean;
+  /**
+   * Showreels end with the brand ending. Loops have no ending: their last frame must lead
+   * straight back into frame 0, so durationInFrames is exactly one motion cycle.
+   */
   durationInFrames: (config: ShowreelConfig, fps: number) => number;
 };
 

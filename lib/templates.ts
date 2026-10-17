@@ -62,6 +62,7 @@ export function getTemplateDetail(slug: string, now = Date.now()): TemplateDetai
       step: spec.step,
       default: spec.default,
       unit: spec.unit ?? null,
+      options: spec.options ? [...spec.options] : null,
     })),
   };
 }

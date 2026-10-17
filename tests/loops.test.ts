@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { TEMPLATE_CATALOG } from "@/remotion/catalog";
 import { defaultConfig } from "@/remotion/composition";
 import { getDimensions } from "@/remotion/shared/dimensions";
+import { gridTiles, gridTiming, tileProgress } from "@/remotion/templates/gridfade/layout";
+import { revealParams } from "@/remotion/templates/reveal/timing";
 import { marqueeCycleFrames, marqueeGeometry, marqueeOffset, marqueeTilesAt } from "@/remotion/templates/marquee/layout";
 
 const snapshot = (tiles: ReturnType<typeof marqueeTilesAt>) =>
@@ -41,5 +43,30 @@ describe("Marquee", () => {
     const config = defaultConfig("marquee");
     config.templateParams.speed = 1;
     expect(marqueeCycleFrames(config, 30)).toBe(config.media.length * 30);
+  });
+});
+
+describe("Grid Fade", () => {
+  it.each(["16:9", "9:16", "4:5", "1:1"] as const)("starts and ends on an empty grid at %s, and fills it in between", (ratio) => {
+    const config = defaultConfig("gridfade");
+    config.settings.aspectRatio = ratio;
+    const out = getDimensions(ratio, "1080p");
+    const timing = gridTiming(config, out, 30);
+    const tiles = gridTiles(config, out);
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const t of tiles) {
+      expect(tileProgress(0, t.order, timing)).toBe(0);
+      expect(tileProgress(timing.cycle - 1, t.order, timing)).toBe(0);
+      // Middle of the hold: every tile fully shown.
+      expect(tileProgress(timing.wave + Math.floor(timing.hold / 2), t.order, timing)).toBe(1);
+    }
+  });
+});
+
+describe("choice params", () => {
+  it("accept option indexes only", () => {
+    expect(revealParams.safeParse({ shape: 0 }).success).toBe(true);
+    expect(revealParams.safeParse({ shape: 0.5 }).success).toBe(false);
+    expect(revealParams.safeParse({ shape: 2 }).success).toBe(false);
   });
 });

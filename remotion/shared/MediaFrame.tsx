@@ -16,13 +16,15 @@ type Props = {
   style?: CSSProperties;
   /** 0..1 dark overlay, used by templates that push items into the background. */
   dim?: number;
+  /** Applied to the image or video inside the frame, e.g. a zoom that the frame's mask should not follow. */
+  innerStyle?: CSSProperties;
 };
 
-export function MediaFrame({ item, frame, settings, unit, startFrame, style, dim = 0 }: Props) {
+export function MediaFrame({ item, frame, settings, unit, startFrame, style, dim = 0, innerStyle }: Props) {
   const box =
     settings.mediaFit === "contain" ? containBox(frame, item.width, item.height) : frame;
   const src = resolveSrc(item.src);
-  const fill: CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block" };
+  const fill: CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block", ...innerStyle };
 
   return (
     <div

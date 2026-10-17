@@ -32,6 +32,8 @@ export type TemplateParam = {
   step: number;
   default: number;
   unit: "deg" | "x" | "%" | null;
+  /** Set for choice parameters: value i means options[i]. */
+  options: string[] | null;
 };
 
 /** GET /api/templates/{slug} */

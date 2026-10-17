@@ -10,7 +10,7 @@ describe("GET /api/templates", () => {
     const res = await get("/api/templates");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise", "slide", "snap", "stack", "marquee"]);
+    expect(body.data.map((t: { slug: string }) => t.slug)).toEqual(["comet", "rise", "slide", "vflip", "reveal", "snap", "stack", "unveil", "marquee", "gridfade"]);
     expect(body.nextCursor).toBeNull();
   });
 
@@ -25,12 +25,12 @@ describe("GET /api/templates", () => {
       seen.push(...page.data.map((t) => t.slug));
       cursor = page.nextCursor;
     } while (cursor);
-    expect(seen).toEqual(["comet", "rise", "slide", "snap", "stack", "marquee"]);
+    expect(seen).toEqual(["comet", "rise", "slide", "vflip", "reveal", "snap", "stack", "unveil", "marquee", "gridfade"]);
   });
 
   it("filters by type and search text", async () => {
     const loops = await (await get("/api/templates?type=LOOP")).json();
-    expect(loops.data.map((t: { slug: string }) => t.slug)).toEqual(["marquee"]);
+    expect(loops.data.map((t: { slug: string }) => t.slug)).toEqual(["marquee", "gridfade"]);
     const rise = await (await get("/api/templates?q=naik")).json();
     expect(rise.data.map((t: { slug: string }) => t.slug)).toEqual(["rise"]);
   });
@@ -58,6 +58,12 @@ describe("GET /api/templates/{slug}", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.params.map((p: { key: string }) => p.key)).toEqual(["arcHeight", "entryAngle"]);
+  });
+
+  it("describes choice params with their options", async () => {
+    const res = await detailRoute(new Request("http://localhost/api/templates/reveal") as never, ctx("reveal"));
+    const shape = (await res.json()).params.find((p: { key: string }) => p.key === "shape");
+    expect(shape).toMatchObject({ min: 0, max: 1, step: 1, options: ["Kotak", "Lingkaran"] });
   });
 
   it("returns NOT_FOUND in the standard error shape", async () => {

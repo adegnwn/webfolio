@@ -77,6 +77,44 @@ function SliderField({ label, value, spec, suffix, onChange }: SliderFieldProps)
   );
 }
 
+// Written out in full so Tailwind generates the classes.
+const CHOICE_COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
+
+/** A template choice (e.g. mask shape). Stored as the option's index. */
+function ChoiceField({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly string[];
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="flex flex-col gap-2">
+      <span id={id} className="text-sm">
+        {label}
+      </span>
+      <ToggleGroup
+        type="single"
+        value={String(value)}
+        onValueChange={(v) => v && onChange(Number(v))}
+        aria-labelledby={id}
+        className={CHOICE_COLUMNS[Math.min(options.length, 4)]}
+      >
+        {options.map((option, i) => (
+          <ToggleGroupItem key={option} value={String(i)}>
+            {option}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+}
+
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const id = useId();
   return (
@@ -170,15 +208,26 @@ export function SettingsPanel() {
 
       {template && Object.keys(template.params).length > 0 ? (
         <Section title={`Opsi ${template.name}`}>
-          {Object.entries(template.params).map(([key, spec]) => (
-            <SliderField
-              key={`${template.slug}-${key}`}
-              label={spec.label}
-              value={config.templateParams[key] ?? spec.default}
-              spec={spec}
-              onChange={(v) => setParam(key, v)}
-            />
-          ))}
+          {Object.entries(template.params).map(([key, spec]) => {
+            const value = config.templateParams[key] ?? spec.default;
+            return spec.options ? (
+              <ChoiceField
+                key={`${template.slug}-${key}`}
+                label={spec.label}
+                options={spec.options}
+                value={value}
+                onChange={(v) => setParam(key, v)}
+              />
+            ) : (
+              <SliderField
+                key={`${template.slug}-${key}`}
+                label={spec.label}
+                value={value}
+                spec={spec}
+                onChange={(v) => setParam(key, v)}
+              />
+            );
+          })}
         </Section>
       ) : null}
 

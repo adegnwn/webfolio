@@ -60,7 +60,7 @@ Every list endpoint takes `?cursor=&limit=` (`limit` 1 to 100, default 20) and r
 | Method | Path | Body / query | Success |
 |---|---|---|---|
 | GET | `/api/templates` | `type?=SHOWREEL\|LOOP`, `q?`, `cursor?`, `limit?` | 200 `Page<TemplateSummary>` |
-| GET | `/api/templates/{slug}` | | 200 `TemplateDetail` (includes `params[]` for the settings sliders), 404 |
+| GET | `/api/templates/{slug}` | | 200 `TemplateDetail` (includes `params[]` for the settings controls; a param with `options` is a choice whose value is the option index), 404 |
 | PUT | `/api/templates/{slug}/star` | | 204. Idempotent |
 | DELETE | `/api/templates/{slug}/star` | | 204. Idempotent |
 

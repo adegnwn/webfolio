@@ -19,7 +19,7 @@ function ToggleGroupItem({ className, ...props }: React.ComponentProps<typeof To
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
       className={cn(
-        "h-11 cursor-pointer rounded-sm lg:h-8 px-2 text-xs font-medium text-muted-foreground tabular-nums transition-colors duration-100 hover:bg-hover hover:text-foreground data-[state=on]:bg-paper data-[state=on]:text-ink",
+        "h-11 cursor-pointer rounded-sm lg:h-8 px-2 text-xs font-medium text-muted-foreground tabular-nums transition-colors duration-100 hover:bg-hover hover:text-foreground data-[state=on]:bg-foreground data-[state=on]:text-background",
         className,
       )}
       {...props}

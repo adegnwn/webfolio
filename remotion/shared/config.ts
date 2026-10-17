@@ -60,6 +60,8 @@ export const MediaItem = z.object({
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   durationSec: z.number().positive().optional(),
+  /** Original file name, shown in the editor. Not used by templates. */
+  name: z.string().max(200).optional(),
 });
 export type MediaItem = z.infer<typeof MediaItem>;
 

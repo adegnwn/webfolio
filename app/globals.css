@@ -3,36 +3,81 @@
 @import "@fontsource-variable/bricolage-grotesque";
 @import "@fontsource-variable/instrument-sans";
 
-/* Tokens: see DESIGN.md. The editor is dark only (video tool, neutral surround). */
-:root {
+/*
+ * Tokens: see DESIGN.md. Two themes share the same token names; only the values change.
+ * The class on <html> (set before paint by the script in app/layout.tsx) picks the theme.
+ * Without JS, the system preference decides.
+ */
+:root,
+:root.dark {
   color-scheme: dark;
 
-  --sf-ink: #070708;
+  --sf-bg: #070708;
   --sf-panel: #0f0f11;
   --sf-control: #18181b;
   --sf-hover: #212125;
   --sf-line: #2a2a2f;
-  --sf-paper: #f2efe9;
+  --sf-fg: #f2efe9;
   --sf-muted: #9c978f;
   --sf-ember: #ff5b2e;
+  --sf-on-ember: #070708;
   --sf-danger: #ff7a6b;
+  /* Neutral surround around the video, so its colors read true in either theme. */
+  --sf-stage: #0b0b0d;
+}
 
-  /* shadcn/ui semantic tokens mapped onto the ShowForge palette */
+:root.light {
+  color-scheme: light;
+
+  --sf-bg: #f3f0ea;
+  --sf-panel: #ebe7df;
+  --sf-control: #e2ddd3;
+  --sf-hover: #d8d2c6;
+  --sf-line: #cbc4b6;
+  --sf-fg: #151311;
+  --sf-muted: #5e594f;
+  /* Darker ember: keeps 3:1 against every light surface. */
+  --sf-ember: #c93d17;
+  --sf-on-ember: #ffffff;
+  --sf-danger: #b3261e;
+  --sf-stage: #e4e0d8;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    color-scheme: light;
+
+    --sf-bg: #f3f0ea;
+    --sf-panel: #ebe7df;
+    --sf-control: #e2ddd3;
+    --sf-hover: #d8d2c6;
+    --sf-line: #cbc4b6;
+    --sf-fg: #151311;
+    --sf-muted: #5e594f;
+    --sf-ember: #c93d17;
+    --sf-on-ember: #ffffff;
+    --sf-danger: #b3261e;
+    --sf-stage: #e4e0d8;
+  }
+}
+
+/* shadcn/ui semantic tokens mapped onto the ShowForge palette */
+:root {
   --radius: 0.375rem;
-  --background: var(--sf-ink);
-  --foreground: var(--sf-paper);
+  --background: var(--sf-bg);
+  --foreground: var(--sf-fg);
   --card: var(--sf-panel);
-  --card-foreground: var(--sf-paper);
+  --card-foreground: var(--sf-fg);
   --popover: var(--sf-control);
-  --popover-foreground: var(--sf-paper);
+  --popover-foreground: var(--sf-fg);
   --primary: var(--sf-ember);
-  --primary-foreground: var(--sf-ink);
+  --primary-foreground: var(--sf-on-ember);
   --secondary: var(--sf-control);
-  --secondary-foreground: var(--sf-paper);
+  --secondary-foreground: var(--sf-fg);
   --muted: var(--sf-control);
   --muted-foreground: var(--sf-muted);
   --accent: var(--sf-hover);
-  --accent-foreground: var(--sf-paper);
+  --accent-foreground: var(--sf-fg);
   --destructive: var(--sf-danger);
   --border: var(--sf-line);
   --input: var(--sf-line);
@@ -59,13 +104,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-ink: var(--sf-ink);
   --color-panel: var(--sf-panel);
   --color-control: var(--sf-control);
   --color-hover: var(--sf-hover);
   --color-line: var(--sf-line);
-  --color-paper: var(--sf-paper);
   --color-ember: var(--sf-ember);
+  --color-stage: var(--sf-stage);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);

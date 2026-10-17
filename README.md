@@ -2,7 +2,7 @@
 
 Turns screenshots and clips into a portfolio showreel. Spec: the ShowForge PRD (Portfolio Showreel SaaS) in the WEB FOLIO SAAS project.
 
-Status: **Fase 0 done, Fase 1 in progress.** The editor preview runs with six templates on bundled example media: showreels Comet, Rise, Slide, Snap, Stack and the loop Marquee. Upload, accounts, export and payments are next.
+Status: **Fase 0 done, Fase 1 in progress.** The editor runs six templates (showreels Comet, Rise, Slide, Snap, Stack and the loop Marquee) in light and dark mode. Media can be added (picker or drag and drop), removed and reordered; until R2 upload lands they stay in the browser tab as local files. Accounts, upload, export and payments are next.
 
 ## Stack
 
@@ -62,13 +62,18 @@ app/
   (dashboard)/dashboard/   editor (PRD 5.2)
   api/templates/           GET list + detail (the only endpoints built so far)
 components/
-  editor/                  TemplatePanel, Canvas (Remotion Player), SettingsPanel, CopyJsonButton
+  editor/                  TemplatePanel, Canvas (Remotion Player + drop zone), MediaStrip, SettingsPanel
+  ThemeToggle.tsx          light/dark switch; lib/theme.ts applies the choice before first paint
   ui/                      shadcn/ui components, themed with DESIGN.md tokens
 lib/
   api/                     error format, cursor pagination, boundary validation
   contracts/               zod schemas + types for every endpoint (built and planned)
   db.ts, env.ts            Prisma client (driver adapter), lazy env validation
   templates.ts             template queries behind /api/templates
+  media-files.ts           file format/size checks (PRD 3.2) and reading picked files
+stores/
+  editor.ts                the ShowreelConfig being edited (Zustand)
+  ui.ts                    panel visibility, media errors
 remotion/
   catalog.ts               which templates exist (metadata only, safe for server code)
   registry.ts              catalog + React components
